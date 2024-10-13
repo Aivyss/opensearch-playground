@@ -1,0 +1,81 @@
+version: '3'
+services:
+    elasticsearch-node-1: # This is also the hostname of the container within the Docker network (i.e. https://elasticsearch-node-1/)
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.7.1 # Specifying the latest available image - modify if you want a specific version
+        container_name: elasticsearch-node-1
+        environment:
+            - cluster.name=elasticsearch-cluster
+            - node.name=elasticsearch-node-1
+            - discovery.seed_hosts=elasticsearch-node-2,elasticsearch-node-3
+            - cluster.initial_master_nodes=elasticsearch-node-1,elasticsearch-node-2,elasticsearch-node-3
+            - bootstrap.memory_lock=true
+            - bootstrap.system_call_filter=false # https://qiita.com/teru855/items/1be13721ddf38231c37d
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+            memlock:
+                soft: -1 # Set memlock to unlimited (no soft or hard limit)
+                hard: -1
+            nofile:
+                soft: 65536 # Maximum number of open files for the elasticsearch user - set to at least 65536
+                hard: 65536
+        volumes:
+            - elasticsearch-data1:/usr/share/elasticsearch/data # Creates volume called elasticsearch-data1 and mounts it to the container
+        ports:
+            - 9200:9200 # REST API
+            - 9600:9600 # Performance Analyzer
+        networks:
+            - elasticsearch-net # All of the containers will join the same Docker bridge network
+    elasticsearch-node-2:
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.7.1 # This should be the same image used for elasticsearch-node-1 to avoid issues
+        container_name: elasticsearch-node-2
+        environment:
+            - cluster.name=elasticsearch-cluster
+            - node.name=elasticsearch-node-2
+            - discovery.seed_hosts=elasticsearch-node-1,elasticsearch-node-3
+            - cluster.initial_master_nodes=elasticsearch-node-1,elasticsearch-node-2,elasticsearch-node-3
+            - bootstrap.memory_lock=true
+            - bootstrap.system_call_filter=false # https://qiita.com/teru855/items/1be13721ddf38231c37d
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        volumes:
+            - elasticsearch-data2:/usr/share/elasticsearch/data
+        networks:
+            - elasticsearch-net
+    elasticsearch-node-3:
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.7.1 # This should be the same image used for elasticsearch-node-1 to avoid issues
+        container_name: elasticsearch-node-3
+        environment:
+            - cluster.name=elasticsearch-cluster
+            - node.name=elasticsearch-node-3
+            - discovery.seed_hosts=elasticsearch-node-1,elasticsearch-node-2
+            - cluster.initial_master_nodes=elasticsearch-node-1,elasticsearch-node-2,elasticsearch-node-3
+            - bootstrap.memory_lock=true
+            - bootstrap.system_call_filter=false # https://qiita.com/teru855/items/1be13721ddf38231c37d
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        volumes:
+            - elasticsearch-data3:/usr/share/elasticsearch/data
+        networks:
+            - elasticsearch-net
+volumes:
+    elasticsearch-data1:
+        driver: local
+    elasticsearch-data2:
+        driver: local
+    elasticsearch-data3:
+        driver: local
+networks:
+    elasticsearch-net:
+        driver: bridge
