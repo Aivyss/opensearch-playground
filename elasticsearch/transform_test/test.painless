@@ -1,0 +1,19 @@
+if (params['_source'].containsKey('phone_number_list')) {
+  def phoneList = params['_source']['phone_number_list'];
+
+  if (phoneList instanceof ArrayList) {
+    for (int i = 0; i < phoneList.length; i++) {
+        def phone_number = phoneList[i].phone_number;
+        if (!state.phone_data.containsKey(phone_number)) {
+          state.phone_data[phone_number] = [];
+        }
+        state.phone_data[phone_number].add(params['_source']['customer_id']);
+    }
+  } else {
+    def phone_number = phoneList.phone_number;
+    if (!state.phone_data.containsKey(phone_number)) {
+      state.phone_data[phone_number] = [];
+    }
+    state.phone_data[phone_number].add(params['_source']['customer_id']);
+  }
+}

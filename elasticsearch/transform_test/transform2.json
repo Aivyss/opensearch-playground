@@ -1,0 +1,28 @@
+{
+    "source": {
+        "index": "customer"
+    },
+    "dest": {
+        "index": "customer_phone"
+    },
+    "frequency": "1m",
+    "pivot": {
+        "group_by": {
+            "group_code": {
+                "terms": {
+                    "field": "group_code"
+                }
+            }
+        },
+        "aggregations": {
+            "phone_number_data": {
+                "scripted_metric": {
+                    "init_script": "state.phone_data = [:];",
+                    "map_script": "if (params['_source'].containsKey('phone_number_list')) {\n  def phoneList = params['_source']['phone_number_list'];\n  \n  if (phoneList instanceof ArrayList) {\n    for (int i = 0; i < phoneList.length; i++) {\n        def phone_number = phoneList[i].phone_number;\n        if (!state.phone_data.containsKey(phone_number)) {\n          state.phone_data[phone_number] = [];\n        }\n        state.phone_data[phone_number].add(params['_source']['customer_id']);\n    }  \n  } else {\n    def phone_number = phoneList.phone_number;\n    if (!state.phone_data.containsKey(phone_number)) {\n      state.phone_data[phone_number] = [];\n    }\n    state.phone_data[phone_number].add(params['_source']['customer_id']);\n  }\n}",
+                    "combine_script": "return state.phone_data;",
+                    "reduce_script": "def result = [:]; for (s in states) { for (phone in s.keySet()) { if (!result.containsKey(phone)) { result[phone] = new HashSet(); } result[phone].addAll(s[phone]); } } for (phone in result.keySet()) { result[phone] = new ArrayList(result[phone]); } return result; "
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,42 @@
+{
+    "source": {
+        "index": "customer"
+    },
+    "dest": {
+        "index": "customer_phone"
+    },
+    "frequency": "1m",
+    "sync": {
+        "time": {
+            "delay": "60s",
+            "field": "timestamp"
+        }
+    },
+    "pivot": {
+        "group_by": {
+            "group_code": {
+                "terms": {
+                    "field": "group_code"
+                }
+            },
+            "customer_id": {
+                "terms": {
+                    "field": "customer_id"
+                }
+            }
+        },
+        "aggregations": {
+            "phone_number": {
+                "scripted_metric": {
+                    "init_script": "state.phone_numbers = []",
+                    "map_script": "if (params['_source'].containsKey('phone_number_list')) { if (params['_source']['phone_number_list'] instanceof ArrayList) { for (int i=0; i < params['_source']['phone_number_list'].size(); ++i) { state.phone_numbers.add(params['_source']['phone_number_list'][i]['phone_number']) } } else { state.phone_numbers.add(params['_source']['phone_number_list']['phone_number']) } }",
+                    "combine_script": "return state.phone_numbers",
+                    "reduce_script": "def phone_numbers = []; for (s in states) { phone_numbers.addAll(s); } return phone_numbers",
+                    "params": {
+                        "unnecessaryFields": ["group_code", "customer_id"]
+                    }
+                }
+            }
+        }
+    }
+}
