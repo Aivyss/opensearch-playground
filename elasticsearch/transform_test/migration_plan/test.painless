@@ -1,0 +1,13 @@
+def phone_numbers = new ArrayList();
+
+if (ctx.phone_number_list != null) {
+    if (ctx.phone_number_list instanceof ArrayList) {
+        for (elem in ctx.phone_number_list) {
+            phone_numbers.add(elem['phone_number']['raw']);
+        }
+    } else {
+        phone_numbers.add(ctx.phone_number_list.phone_number);
+    }
+}
+
+ctx.phone_numbers = phone_numbers ;

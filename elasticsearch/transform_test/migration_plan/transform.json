@@ -1,0 +1,39 @@
+{
+    "source": {
+        "index": "customer-1"
+    },
+    "dest": {
+        "index": "customer_phone"
+    },
+    "frequency": "1m",
+    "sync": {
+        "time": {
+            "delay": "60s",
+            "field": "timestamp"
+        }
+    },
+    "pivot": {
+        "group_by": {
+            "group_code": {
+                "terms": {
+                    "field": "group_code"
+                }
+            },
+            "phone_number": {
+                "terms": {
+                    "field": "phone_numbers"
+                }
+            }
+        },
+        "aggregations": {
+            "customer_ids": {
+                "scripted_metric": {
+                    "init_script": "state.customer_ids = []",
+                    "map_script": "if (params['_source'].containsKey('customer_id')) { state.customer_ids.add(params['_source']['customer_id']); }",
+                    "combine_script": "return state.customer_ids",
+                    "reduce_script": "def customer_ids = []; for (s in states) { customer_ids.addAll(s); } return customer_ids"
+                }
+            }
+        }
+    }
+}

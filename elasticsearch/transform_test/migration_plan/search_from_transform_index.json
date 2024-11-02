@@ -1,0 +1,17 @@
+{
+    "query": {
+        "term": {
+            "group_code": "code-1"
+        }
+    },
+    "_source": true,
+    "sort": {
+        "_script": {
+            "script": {
+                "source": "if (params['_source']['customer_ids'] != null) { return params['_source']['customer_ids'].length; } return 0;"
+            },
+            "type": "number",
+            "order": "desc"
+        }
+    }
+}

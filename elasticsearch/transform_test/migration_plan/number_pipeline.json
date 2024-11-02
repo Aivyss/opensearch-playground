@@ -1,0 +1,16 @@
+{
+    "description": "flatten.... phone numbers ......",
+    "processors": [
+        {
+            "script": {
+                "lang": "painless",
+                "source": "def phone_numbers = new ArrayList();\n\nif (ctx.phone_number_list != null) {\n    if (ctx.phone_number_list instanceof ArrayList) {\n        for (elem in ctx.phone_number_list) {\n            phone_numbers.add(elem.phone_number);\n        }\n    } else {\n        phone_numbers.add(ctx.phone_number_list.phone_number);\n    }\n}\n\nctx.phone_numbers = phone_numbers;"
+            }
+        },
+        {
+            "pipeline": {
+                "name": "add_timestamp"
+            }
+        }
+    ]
+}
